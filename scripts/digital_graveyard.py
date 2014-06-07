@@ -15,15 +15,16 @@ ch.setFormatter(format)
 logger.addHandler(fh)
 logger.addHandler(ch)
 
+script_dir = os.path.dirname(os.path.realpath(__file__))
 
 def get_names_from_files():
     ''' Get the list of first names and last names from the files on disk. '''
 
-    with open('firstnames.txt', 'r') as f:
+    with open(os.path.join(script_dir, 'firstnames.txt'), 'r') as f:
         first_names = [ x.strip('\n') for x in f.readlines() ]
-    with open('lastnames.txt', 'r') as l:
+    with open(os.path.join(script_dir, 'lastnames.txt'), 'r') as l:
         last_names  = [ x.strip('\n') for x in l.readlines() ]
-    with open('honorifics.txt', 'r') as h:
+    with open(os.path.join(script_dir, 'honorifics.txt'), 'r') as h:
         honorifics  = [ x.strip('\n') for x in h.readlines() ]
     return first_names, last_names, honorifics
 
@@ -75,6 +76,16 @@ def clean_up_name(name):
         name.rstrip('\'s')
 
     return name
+
+
+def change_time_format(timestamp):
+    ''' Changes the time format. Example:
+        Sat Jun 07 14:38:49 +0000 2014 becomes
+        14:38:49 Jun 07 2014 '''
+
+    t = time.strptime(timestamp, '%a %b %d %H:%M:%S +0000 %Y')
+    timestamp = time.strftime('%H:%M:%S %b %d %Y', t)
+    return timestamp
 
 
 def precheck_text(text):
@@ -175,11 +186,12 @@ def get_latest_tweets(stream):
 
     for s in stream:
 
-        text, time, user = s['text'], s['created_at'], s['user']['screen_name']
+        text, timestamp, user = s['text'], s['created_at'], s['user']['screen_name']
 
         cleaned_up_text = remove_user_mentions(text)
+        timestamp = change_time_format(timestamp)  # fix the timeformat
 
-        tweet = {'text': text, 'time': time, 'user': user, 'name': None, 'retweet': 0}
+        tweet = {'text': text, 'time': timestamp, 'user': user, 'name': None, 'retweet': 0}
 
         if is_retweet(cleaned_up_text):
             tweet['retweet'] = 1
@@ -198,7 +210,7 @@ def get_latest_tweets(stream):
             yield tweet
 
 
-def save_tweet_to_db(tweet, database):
+def save_to_db(tweet, database):
     tweet_values = tweet['text'], tweet['user'], tweet['time'], tweet['name'], tweet['retweet']
     conn = sqlite3.connect(database)
     c = conn.cursor()
@@ -218,7 +230,7 @@ def main():
     stream = connect_to_streaming_API()
     tweets = get_latest_tweets(stream)
     for tweet in tweets:
-        save_tweet_to_db(tweet, database)
+        save_to_db(tweet, database)
         print_tweet(tweet)
 
 
