@@ -7,16 +7,16 @@
 THREE.FirstPersonControls = function ( object, domElement ) {
 
 	this.object = object;
-	this.target = new THREE.Vector3( 0, 0, 0 );
+	this.target = new THREE.Vector3( 0, 25, 1 );
 
 	this.domElement = ( domElement !== undefined ) ? domElement : document;
 
 	this.movementSpeed = 1.0;
 	this.lookSpeed = 0.005;
 
-	this.lookVertical = true;
+	this.lookVertical = false;
 	this.autoForward = false;
-	// this.invertVertical = false;
+	//this.invertVertical = false;
 
 	this.activeLook = true;
 
@@ -56,7 +56,7 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 
 	}
 
-	//
+
 
 	this.handleResize = function () {
 
@@ -154,8 +154,8 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 			case 39: /*right*/
 			case 68: /*D*/ this.moveRight = true; break;
 
-			case 82: /*R*/ this.moveUp = true; break;
-			case 70: /*F*/ this.moveDown = true; break;
+			// case 82: /*R*/ this.moveUp = true; break;
+			// case 70: /*F*/ this.moveDown = true; break;
 
 			case 81: /*Q*/ this.freeze = !this.freeze; break;
 
@@ -179,8 +179,8 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 			case 39: /*right*/
 			case 68: /*D*/ this.moveRight = false; break;
 
-			case 82: /*R*/ this.moveUp = false; break;
-			case 70: /*F*/ this.moveDown = false; break;
+			// case 82: /*R*/ this.moveUp = false; break;
+			// case 70: /*F*/ this.moveDown = false; break;
 
 		}
 
@@ -265,7 +265,7 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 	this.domElement.addEventListener( 'mousemove', bind( this, this.onMouseMove ), false );
 	this.domElement.addEventListener( 'mousedown', bind( this, this.onMouseDown ), false );
 	this.domElement.addEventListener( 'mouseup', bind( this, this.onMouseUp ), false );
-	
+
 	window.addEventListener( 'keydown', bind( this, this.onKeyDown ), false );
 	window.addEventListener( 'keyup', bind( this, this.onKeyUp ), false );
 

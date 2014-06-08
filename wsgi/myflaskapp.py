@@ -16,7 +16,7 @@ def hello():
     if INCLUDE_RETWEETS:
         tweets = g.db.execute("SELECT name, user, time FROM tweet").fetchall()
     else:
-        tweets = g.db.execute("SELECT name, user, time FROM tweet where retweet_status == 1").fetchall()
+        tweets = g.db.execute("SELECT name, user, time FROM tweet where retweet_status == 0").fetchall()
     length = len(tweets)
     return render_template('index.html', length=length, tweets=tweets)
 
