@@ -1,5 +1,6 @@
 import TwitterAPI, re, time, logging, os.path, unicodedata, sqlite3, os
 from Queue import Queue
+from calendar import timegm
 
 ##  Logging
 logger = logging.getLogger("__main__")
@@ -84,7 +85,7 @@ def change_time_format(timestamp):
         14:38:49 Jun 07 2014 '''
 
     t = time.strptime(timestamp, '%a %b %d %H:%M:%S +0000 %Y')
-    timestamp = time.strftime('%H:%M:%S %b %d %Y', t)
+    timestamp = timegm(t) #convert to seconds since the epoch
     return timestamp
 
 
@@ -231,7 +232,7 @@ def main():
     tweets = get_latest_tweets(stream)
     for tweet in tweets:
         save_to_db(tweet, database)
-        print_tweet(tweet)
+        # print_tweet(tweet)
 
 
 if __name__ == '__main__':

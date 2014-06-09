@@ -175,6 +175,9 @@ if ( havePointerLock ) {
     var BACKGROUND_COLOR = 0xc90400;
     var FOG_COLOR = 0xe7e6e9;
     var ul, user, name, time;
+    var date = new Date();
+    var utc_offset = date.getTimezoneOffset();
+    delete date;
 
 
 // INIT SCENE, CAMERA, CLOCK AND RENDERER
@@ -254,6 +257,7 @@ if ( havePointerLock ) {
         name = ul.getElementsByTagName('div')[i].childNodes[1].innerHTML;
         user = ul.getElementsByTagName('div')[i].childNodes[3].innerHTML;
         time = ul.getElementsByTagName('div')[i].childNodes[5].innerHTML;
+        time = adjust_to_users_timezone(time);
         tweetArray[i] = {name: name, user: user, time: time};
     }
 
@@ -324,6 +328,12 @@ if ( havePointerLock ) {
         scene.add( user_text );
         scene.add( name_text );
         scene.add( time_text);
+    }
+
+    function adjust_to_users_timezone (time) {
+        var new_time = time * 1000 + utc_offset * 60000; // convert to miliseconds, get
+        var new_date = new Date(new_time)
+        return new_date.toLocaleString()
     }
 
 
