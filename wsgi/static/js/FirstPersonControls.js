@@ -7,16 +7,16 @@
 THREE.FirstPersonControls = function ( object, domElement ) {
 
 	this.object = object;
-	this.target = new THREE.Vector3( 0, 25, 1 );
+	this.target = new THREE.Vector3( 0, 0, 0 );
 
 	this.domElement = ( domElement !== undefined ) ? domElement : document;
 
-	this.movementSpeed = 1.0;
-	this.lookSpeed = 0.005;
+	this.movementSpeed = 10.0;
+	this.lookSpeed = 0.05;
 
-	this.lookVertical = false;
+	this.lookVertical = true;
 	this.autoForward = false;
-	//this.invertVertical = false;
+	// this.invertVertical = false;
 
 	this.activeLook = true;
 
@@ -157,7 +157,7 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 			// case 82: /*R*/ this.moveUp = true; break;
 			// case 70: /*F*/ this.moveDown = true; break;
 
-			case 81: /*Q*/ this.freeze = !this.freeze; break;
+			// case 81: /*Q*/ this.freeze = !this.freeze; break;
 
 		}
 
