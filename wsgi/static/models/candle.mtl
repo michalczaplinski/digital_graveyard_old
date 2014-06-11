@@ -1,0 +1,14 @@
+# Blender MTL File: 'None'
+# Material Count: 1
+newmtl Church_OBJ_Chandelier_MAT
+Ns 7.843137
+Ka 0.000000 0.000000 0.000000
+Kd 0.470400 0.470400 0.470400
+Ks 0.000000 0.000000 0.000000
+Ni 1.000000
+d 0.000000
+illum 2
+map_Kd C:\4\Museum_C1_Static\Texture2D\Church_OBJ_Chandelier_D.tga
+map_Ka C:\\4\\Museum_C1_Static\\Texture2D\\Church_OBJ_Chandelier_D.tga
+
+

@@ -40,32 +40,32 @@ MyControls = function ( object, domElement ) {
     };
 
 
-    this.onMouseDown = function ( event ) {
-        if ( this.domElement !== document ) {
-            this.domElement.focus();
-        }
-        event.preventDefault();
-        event.stopPropagation();
+    // this.onMouseDown = function ( event ) {
+    //     if ( this.domElement !== document ) {
+    //         this.domElement.focus();
+    //     }
+    //     event.preventDefault();
+    //     event.stopPropagation();
 
-        switch ( event.button ) {
-            case 0: this.moveForward = true; break;
-            case 2: this.moveBackward = true; break;
-        }
-        this.mouseDragOn = true;
-    };
+    //     switch ( event.button ) {
+    //         case 0: this.moveForward = true; break;
+    //         case 2: this.moveBackward = true; break;
+    //     }
+    //     this.mouseDragOn = true;
+    // };
 
 
-    this.onMouseUp = function ( event ) {
+    // this.onMouseUp = function ( event ) {
 
-        event.preventDefault();
-        event.stopPropagation();
+    //     event.preventDefault();
+    //     event.stopPropagation();
 
-        switch ( event.button ) {
-            case 0: this.moveForward = false; break;
-            case 2: this.moveBackward = false; break;
-        }
-        this.mouseDragOn = false;
-    };
+    //     switch ( event.button ) {
+    //         case 0: this.moveForward = false; break;
+    //         case 2: this.moveBackward = false; break;
+    //     }
+    //     this.mouseDragOn = false;
+    // };
 
 
     this.onMouseMove = function ( event ) {
@@ -130,8 +130,8 @@ MyControls = function ( object, domElement ) {
 
     this.domElement.addEventListener( 'contextmenu', function ( event ) { event.preventDefault(); }, false );
     this.domElement.addEventListener( 'mousemove', bind( this, this.onMouseMove ), false );
-    this.domElement.addEventListener( 'mousedown', bind( this, this.onMouseDown ), false );
-    this.domElement.addEventListener( 'mouseup', bind( this, this.onMouseUp ), false );
+    // this.domElement.addEventListener( 'mousedown', bind( this, this.onMouseDown ), false );
+    // this.domElement.addEventListener( 'mouseup', bind( this, this.onMouseUp ), false );
 
     window.addEventListener( 'keydown', bind( this, this.onKeyDown ), false );
     window.addEventListener( 'keyup', bind( this, this.onKeyUp ), false );
