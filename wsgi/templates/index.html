@@ -106,34 +106,6 @@
         <script src="static/js/loaders/OBJLoader.js" type="text/javascript"></script>
 
 
-<script type="x-shader/x-vertex" id="vertexShader">
-
-    varying vec3 vWorldPosition;
-
-    void main() {
-        vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
-        vWorldPosition = worldPosition.xyz;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-    }
-
-</script>
-
-<script type="x-shader/x-fragment" id="fragmentShader">
-
-    uniform vec3 topColor;
-    uniform vec3 bottomColor;
-    uniform float offset;
-    uniform float exponent;
-    varying vec3 vWorldPosition;
-
-    void main() {
-        float h = normalize( vWorldPosition + offset ).y;
-        gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( h, exponent ), 0.0 ) ), 1.0 );
-    }
-
-</script>
-
-
 <script>
 
 
@@ -167,7 +139,7 @@
 
 // INIT SCENE, CAMERA, CLOCK AND RENDERER
     var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 8000);
+    var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 10000);
     var clock = new THREE.Clock();
     var renderer = new THREE.WebGLRenderer({ alpha: true });
     renderer.setClearColor( FOG_COLOR, 1);
@@ -224,27 +196,6 @@
         obj.scale.set(.01, .01, .01);
         flowers = obj;
     });
-
-
-// SKYBOX
-    var vertexShader = document.getElementById( 'vertexShader' ).textContent;
-    var fragmentShader = document.getElementById( 'fragmentShader' ).textContent;
-    var uniforms = {
-        topColor:    { type: "c", value: new THREE.Color( BACKGROUND_COLOR ) },
-        bottomColor: { type: "c", value: new THREE.Color( FOG_COLOR ) },
-        offset:      { type: "f", value: 200 },
-        exponent:    { type: "f", value: .4 }
-    }
-
-    var skyGeo = new THREE.SphereGeometry( 4000, 32, 15 );
-    var skyMat = new THREE.ShaderMaterial(
-        {   vertexShader: vertexShader,
-            fragmentShader: fragmentShader,
-            uniforms: uniforms,
-            side: THREE.BackSide } );
-
-    var sky = new THREE.Mesh( skyGeo, skyMat );
-    scene.add( sky );
 
 
 // ADD GRAVES AND TEXT
@@ -356,7 +307,7 @@
     };
     function checkInnerZone() {
         for( var i = 0; i < num_tweets; i++ ){
-            if (camera.position.distanceTo(graveArray[i].position) < 250) {
+            if (camera.position.distanceTo(graveArray[i].position) < 450) {
                 scene.add( graveArray[i]);
                 scene.add( ripArray[i] );
                 scene.add( userArray[i] );
@@ -367,7 +318,7 @@
     };
     function checkOuterZone() {
       for( var i = 0; i < num_tweets; i++ ){
-            if (camera.position.distanceTo(graveArray[i].position) > 251) {
+            if (camera.position.distanceTo(graveArray[i].position) > 451) {
                 scene.remove( graveArray[i]);
                 scene.remove( ripArray[i] );
                 scene.remove( userArray[i] );
