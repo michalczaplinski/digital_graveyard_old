@@ -9,6 +9,63 @@
 
     #info {display: none;}
 
+    #menu {
+
+        display: inline;
+        background-color: transparent;
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        font-size: 40px;
+
+        -webkit-margin-before: 0em;
+        -webkit-margin-after: 0em;
+        -webkit-margin-start: 0px;
+        -webkit-margin-end: 0px;
+        -webkit-padding-start: 0px;
+    }
+
+    #menu ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    #menu li {
+        display: inline;
+
+        border-color: black;
+        border-width: 1px;
+        border-style: solid;
+    }
+
+    #candle:active {
+        background-color: green;
+    }
+    #flowers:active {
+        background-color: green
+    }
+
+    #search-bar {
+        width: auto;
+        margin: 0;
+        position: fixed;
+    }
+
+    input:focus::-webkit-input-placeholder {
+       color: #f1ecf0;
+    }
+    input:focus:-moz-placeholder { /* Firefox 18- */
+       color: #f1ecf0;
+    }
+    input:focus::-moz-placeholder {  /* Firefox 19+ */
+       color: #f1ecf0;
+    }
+    input:focus:-ms-input-placeholder {
+       color: #f1ecf0;
+    }
+
+
 </style>
 </head>
     <body>
@@ -25,7 +82,21 @@
             </ul>
         </div>
 
-        <!-- <script src='static/js/jquery-2.1.1.js' type="text/javascript"></script> -->
+        <div id="search-bar">
+            <input id="field" type="text" maxlength=25 placeholder="Search..." required>
+            <input id='button' type='button' value='Search'>
+        </div>
+
+        <div id="menu">
+            <ul>
+                <li id='candle'>candle</li>
+                <li id='flowers'>flowers</li>
+            </ul>
+        </div>
+
+        <link rel="stylesheet" type="text/css" href="static/css/normalize.css">
+
+        <script src='static/js/jquery-2.1.1.js' type="text/javascript"></script>
         <!-- <script src='static/js/jquery-2.1.1.min.js' type="text/javascript"></script> -->
         <!-- <script src="static/js/three.min.js" type="text/javascript"></script> -->
         <script src="static/js/three.js" type="text/javascript"></script>
@@ -67,22 +138,31 @@
 
 
 // DETECT INCOMPATIBLE BROWSERS AND DEVICES
-    if ( ! Detector.webgl ) {
-        Detector.addGetWebGLMessage();
-        document.getElementById( 'container' ).innerHTML = ""; }
+    if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 
 // CONSTANTS AND VARIABLE DECLARATIONS
     var PI_2 = Math.PI / 2;
-    var NUM_ROWS = 11;
+    var NUM_ROWS = 3;
+    var ROW_SPACE_WIDTH = 30;
     var BACKGROUND_COLOR = 0xc90400;
     var FOG_COLOR = 0xe7e6e9;
-    var ul, user, name, time;
+    var num_tweets = parseInt(document.getElementById('length').innerHTML);
+    var ul, user, name, time, candle, flowers, item;
     var date = new Date();
     var utc_offset = date.getTimezoneOffset();
-    var candle, item, helper;
 
-    delete date;
+
+// GET THE INFO FROM THE DOM
+    var tweetArray = Array( num_tweets );
+    for (var i = 0; i < num_tweets; i++) {
+        ul = document.getElementById('tweets');
+        name = ul.getElementsByTagName('div')[i].childNodes[1].innerHTML;
+        user = ul.getElementsByTagName('div')[i].childNodes[3].innerHTML;
+        time = ul.getElementsByTagName('div')[i].childNodes[5].innerHTML;
+        time = adjust_to_users_timezone(time);
+        tweetArray[i] = {name: name, user: user, time: time};
+    }
 
 
 // INIT SCENE, CAMERA, CLOCK AND RENDERER
@@ -95,26 +175,10 @@
     document.body.appendChild(renderer.domElement);
 
 
-// MODEL
-    var loader = new THREE.OBJLoader();
-    loader.load( 'static/models/candle.obj', model_to_scene )
-
-    function model_to_scene ( obj ) {
-        obj.scale.set(.1, .1, .1);
-        candle = obj;
-        scene.add(candle);
-    };
-
-// POINTER
-    // pointer_geometry = new THREE.BoxGeometry( 5, 5, 5 );
-    // pointer_geometry.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI / 2 ) );
-    // helper = new THREE.Mesh( pointer_geometry, new THREE.MeshBasicMaterial({ color: 0xffffff}) );
-    // scene.add( helper );
-
-
 // SET THE CAMERA POSITION AND DIRECTION
     camera.setLens(60)
     camera.position.setY(10);
+    camera.position.setZ(100);
     scene.add( camera );
 
 
@@ -149,8 +213,20 @@
     scene.fog = new THREE.FogExp2( FOG_COLOR, 0.006 );
 
 
-// SKYBOX
+// MODEL
+    var loader = new THREE.OBJLoader();
+    loader.load( 'static/models/candle.obj', function (obj) {
+        obj.scale.set(.1, .1, .1);
+        candle = obj;
+    });
 
+    loader.load( 'static/models/plants1.obj', function (obj) {
+        obj.scale.set(.01, .01, .01);
+        flowers = obj;
+    });
+
+
+// SKYBOX
     var vertexShader = document.getElementById( 'vertexShader' ).textContent;
     var fragmentShader = document.getElementById( 'fragmentShader' ).textContent;
     var uniforms = {
@@ -171,85 +247,79 @@
     scene.add( sky );
 
 
-// GET THE INFO FROM THE DOM
-    var num_tweets = parseInt(document.getElementById('length').innerHTML);
-    var tweetArray = Array( num_tweets );
-    for (var i = 0; i < num_tweets; i++) {
-        ul = document.getElementById('tweets');
-        name = ul.getElementsByTagName('div')[i].childNodes[1].innerHTML;
-        user = ul.getElementsByTagName('div')[i].childNodes[3].innerHTML;
-        time = ul.getElementsByTagName('div')[i].childNodes[5].innerHTML;
-        time = adjust_to_users_timezone(time);
-        tweetArray[i] = {name: name, user: user, time: time};
-    }
-
-
 // ADD GRAVES AND TEXT
 
-    var POSITION_X, POSITION_Z;
+    var POSITION_X;
+    var POSITION_Z = 0;
+    var graveArray = Array(num_tweets);
+    var ripArray = Array(num_tweets);
+    var nameArray = Array(num_tweets);
+    var userArray = Array(num_tweets);
+    var timeArray = Array(num_tweets);
 
     var parameters = {
         size: .5,
         height: .1,
         font: "helvetiker",
-        curveSegments: 4,
+        curveSegments: 3,
         style: 'normal',
         weight: 'normal',
-        bevelThickness : .05,
-        bevelSize : .05,
-        bevelEnabled : true, };
+        bevelEnabled : false, };
+
 
     var geometry = new THREE.BoxGeometry( 10, 30, 10);
     var RIPgeometry = new THREE.TextGeometry( '# R I P', parameters );
 
-    for( var i = 0; i < num_tweets; i++ ){
+    for( var i = num_tweets-1, j = 0; i >= 0; i--, j++) {
 
-        POSITION_X = i % NUM_ROWS * 30 - 150;
-        POSITION_Z = Math.floor(i/NUM_ROWS) * 50 - Math.floor(num_tweets/NUM_ROWS) * 70;
+        console.log( i , NUM_ROWS)
 
-        tombstone = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x767575 } ) );
-        tombstone.position.x = POSITION_X;
-        tombstone.position.z = POSITION_Z;
-        tombstone.position.y = 10;
-        tombstone.castShadow = false;
-        tombstone.receiveShadow = false;
+        if (j / NUM_ROWS == 1) {
+            NUM_ROWS += 4
+            POSITION_Z -= 100;
+            j = 0;
+        }
 
-        rip_text = new THREE.Mesh(RIPgeometry, new THREE.MeshLambertMaterial( { color: 0xffffff } ));
-        rip_text.position.x = POSITION_X - 3;
-        rip_text.position.z = POSITION_Z + 5;
-        rip_text.position.y = 20;
-        tombstone.castShadow = false;
-        tombstone.receiveShadow = false;
+        POSITION_X = j % NUM_ROWS * ROW_SPACE_WIDTH - (NUM_ROWS * ROW_SPACE_WIDTH) / 2;
+
+        graveArray[i] = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x767575 } ) );
+        graveArray[i].position.x = POSITION_X;
+        graveArray[i].position.z = POSITION_Z;
+        graveArray[i].position.y = 10;
+        graveArray[i].castShadow = false;
+        graveArray[i].receiveShadow = false;
+
+        ripArray[i] = new THREE.Mesh(RIPgeometry, new THREE.MeshLambertMaterial( { color: 0xffffff } ));
+        ripArray[i].position.x = POSITION_X - 3;
+        ripArray[i].position.z = POSITION_Z + 5;
+        ripArray[i].position.y = 20;
 
         var name_geometry = new THREE.TextGeometry(tweetArray[i].name, parameters);
-        name_text = new THREE.Mesh(name_geometry, new THREE.MeshLambertMaterial( { color: 0xffffff } ));
-        name_text.position.x = POSITION_X - 3;
-        name_text.position.z = POSITION_Z + 5;
-        name_text.position.y = 19;
-        name_text.castShadow = false;
-        name_text.receiveShadow = false;
+        nameArray[i] = new THREE.Mesh(name_geometry, new THREE.MeshLambertMaterial( { color: 0xffffff } ));
+        nameArray[i].position.x = POSITION_X - 3;
+        nameArray[i].position.z = POSITION_Z + 5;
+        nameArray[i].position.y = 19;
+        nameArray[i].name = tweetArray[i].name;
+        nameArray[i].castShadow = false;
+        nameArray[i].receiveShadow = false;
 
         var user_geometry = new THREE.TextGeometry('@' + tweetArray[i].user, parameters);
-        user_text = new THREE.Mesh(user_geometry, new THREE.MeshLambertMaterial( { color: 0xffffff } ));
-        user_text.position.x = POSITION_X - 3;
-        user_text.position.z = POSITION_Z + 5;
-        user_text.position.y = 16;
-        user_text.castShadow = false;
-        user_text.receiveShadow = false;
+        userArray[i] = new THREE.Mesh(user_geometry, new THREE.MeshLambertMaterial( { color: 0xffffff } ));
+        userArray[i].position.x = POSITION_X - 3;
+        userArray[i].position.z = POSITION_Z + 5;
+        userArray[i].position.y = 16;
+        userArray[i].name = tweetArray[i].user;
+        userArray[i].castShadow = false;
+        userArray[i].receiveShadow = false;
 
         var time_geometry = new THREE.TextGeometry(tweetArray[i].time, parameters);
-        time_text = new THREE.Mesh(time_geometry, new THREE.MeshLambertMaterial( { color: 0xffffff } ));
-        time_text.position.x = POSITION_X - 3;
-        time_text.position.z = POSITION_Z + 5;
-        time_text.position.y = 15;
-        time_text.castShadow = false;
-        time_text.receiveShadow = false;
-
-        scene.add( tombstone );
-        scene.add( rip_text );
-        scene.add( user_text );
-        scene.add( name_text );
-        scene.add( time_text);
+        timeArray[i] = new THREE.Mesh(time_geometry, new THREE.MeshLambertMaterial( { color: 0xffffff } ));
+        timeArray[i].position.x = POSITION_X - 3;
+        timeArray[i].position.z = POSITION_Z + 5;
+        timeArray[i].position.y = 15;
+        timeArray[i].name = tweetArray[i].time;
+        timeArray[i].castShadow = false;
+        timeArray[i].receiveShadow = false;
     }
 
 
@@ -267,17 +337,48 @@
         camera.updateProjectionMatrix();
         renderer.setSize( window.innerWidth, window.innerHeight );
         controls.handleResize()
-
     };
 
 
 // PLACE THE ITEM
-    function placeItem() {
-        scene.add( candle.clone() );
+    function placeItem( event ) {
+        scene.add( item.clone() );
+    };
+    function cancelPlacing( ) {
+        document.removeEventListener( 'click', placeItem, false)
+    }
+
+
+// FIND DISTANCE TO EACH GRAVE
+    function checkZones() {
+        checkOuterZone();
+        checkInnerZone();
+    };
+    function checkInnerZone() {
+        for( var i = 0; i < num_tweets; i++ ){
+            if (camera.position.distanceTo(graveArray[i].position) < 250) {
+                scene.add( graveArray[i]);
+                scene.add( ripArray[i] );
+                scene.add( userArray[i] );
+                scene.add( nameArray[i] );
+                scene.add( timeArray[i] );
+            }
+        }
+    };
+    function checkOuterZone() {
+      for( var i = 0; i < num_tweets; i++ ){
+            if (camera.position.distanceTo(graveArray[i].position) > 251) {
+                scene.remove( graveArray[i]);
+                scene.remove( ripArray[i] );
+                scene.remove( userArray[i] );
+                scene.remove( nameArray[i] );
+                scene.remove( timeArray[i] );
+            }
+        }
     };
 
 
-    function onMouseMove( event ) {
+    function FollowCursor( event ) {
         var mouseX = ( event.clientX / window.innerWidth ) * 2 - 1;
         var mouseY = -( event.clientY / window.innerHeight ) * 2 + 1;
 
@@ -296,10 +397,31 @@
         // Toggle rotation bool for meshes that we clicked
         if ( intersects.length > 0 ) {
 
-            candle.position.copy( intersects[ 0 ].point );
+            item.position.copy( intersects[ 0 ].point );
         }
     };
 
+
+    function onChoosingCandle (event) {
+        scene.remove(item)
+        item = candle;
+        scene.add(item);
+        document.addEventListener( 'mousemove', FollowCursor, false );
+        event.stopPropagation();
+        document.removeEventListener('click', onChoosingFlowers, false);
+        document.addEventListener( 'click', placeItem, false);
+
+    };
+
+    function onChoosingFlowers (event) {
+        scene.remove(item)
+        item = flowers;
+        scene.add(item);
+        document.addEventListener( 'mousemove', FollowCursor, false );
+        event.stopPropagation();
+        document.removeEventListener('click', onChoosingCandle, false);
+        document.addEventListener( 'click', placeItem, false);
+    };
 
 
     function animate(){
@@ -309,9 +431,50 @@
     };
 
 
+    function getInput (event) {
+        if (event.type == 'keyup') {
+            if (event.keyCode == 13) {
+                findAndGoToGrave(event);
+            }
+        } else if (event.type == 'click') {
+            findAndGoToGrave(event);
+        }
+    }
+
+
+    function findAndGoToGrave(event) {
+        var search = document.getElementById('field').value;
+        for ( var i = nameArray.length-1; i >=  0; i--) {
+            if (nameArray[i].name == search) {
+                var new_camera_position = nameArray[i].position.clone();
+                new_camera_position.setZ(nameArray[i].position.z + 75);
+                new_camera_position.setY(10)
+                camera.position = new_camera_position;
+                camera.lookAt(nameArray[i].position)
+                break;
+
+            }
+        }
+    }
+
+
     window.addEventListener( 'resize', onWindowResize, false );
-    document.addEventListener( 'mousemove', onMouseMove, false );
-    document.addEventListener( 'click', placeItem, false);
+    document.addEventListener( 'readystatechange', checkZones, false);
+    document.addEventListener( 'keydown', checkZones, false);
+    document.addEventListener('click', FollowCursor, false);
+
+    var field = document.getElementById('field');
+    var button = document.getElementById('button');
+    field.addEventListener('keyup', getInput, false);
+    button.addEventListener('click', getInput, false);
+
+    var candle_element = document.getElementById('candle')
+    var flowers_element = document.getElementById('flowers')
+    var menu = document.getElementById('menu')
+    menu.addEventListener( 'hover', cancelPlacing, false);
+    candle_element.addEventListener('click', onChoosingCandle, false);
+    flowers_element.addEventListener('click', onChoosingFlowers, false);
+
 
     animate();
 

@@ -1,8 +1,7 @@
 MyControls = function ( object, domElement ) {
 
     this.object = object;
-    this.object.position =
-    this.target = new THREE.Vector3( 0, 10, -50 );
+    // this.target = new THREE.Vector3( 0, 10, -50 );
 
     this.domElement = ( domElement !== undefined ) ? domElement : document;
 
