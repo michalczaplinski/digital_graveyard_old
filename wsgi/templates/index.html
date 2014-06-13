@@ -2,71 +2,6 @@
 <html>
 <head>
 <title>DIGITAL GRAVEYARD</title>
-<style>
-    canvas { width: 100%; height: 100% }
-
-    body {margin: 0px;}
-
-    #info {display: none;}
-
-    #menu {
-
-        display: inline;
-        background-color: transparent;
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        font-size: 40px;
-
-        -webkit-margin-before: 0em;
-        -webkit-margin-after: 0em;
-        -webkit-margin-start: 0px;
-        -webkit-margin-end: 0px;
-        -webkit-padding-start: 0px;
-    }
-
-    #menu ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    #menu li {
-        display: inline;
-
-        border-color: black;
-        border-width: 1px;
-        border-style: solid;
-    }
-
-    #candle:active {
-        background-color: green;
-    }
-    #flowers:active {
-        background-color: green
-    }
-
-    #search-bar {
-        width: auto;
-        margin: 0;
-        position: fixed;
-    }
-
-    input:focus::-webkit-input-placeholder {
-       color: #f1ecf0;
-    }
-    input:focus:-moz-placeholder { /* Firefox 18- */
-       color: #f1ecf0;
-    }
-    input:focus::-moz-placeholder {  /* Firefox 19+ */
-       color: #f1ecf0;
-    }
-    input:focus:-ms-input-placeholder {
-       color: #f1ecf0;
-    }
-
-
-</style>
 </head>
     <body>
 
@@ -95,6 +30,7 @@
         </div>
 
         <link rel="stylesheet" type="text/css" href="static/css/normalize.css">
+        <link rel="stylesheet" type="text/css" href="static/css/style.css">
 
         <script src='static/js/jquery-2.1.1.js' type="text/javascript"></script>
         <!-- <script src='static/js/jquery-2.1.1.min.js' type="text/javascript"></script> -->
@@ -106,9 +42,30 @@
         <script src="static/js/loaders/OBJLoader.js" type="text/javascript"></script>
         <script src="static/js/ImprovedNoise.js" type="text/javascript"></script>
 
+<script type="application/x-glsl" id="sky-vertex">
+
+varying vec2 vUV;
+
+void main() {
+  vUV = uv;
+  vec4 pos = vec4(position, 1.0);
+  gl_Position = projectionMatrix * modelViewMatrix * pos;
+}
+</script>
+
+<script type="application/x-glsl" id="sky-fragment">
+uniform sampler2D texture;
+varying vec2 vUV;
+
+void main() {
+  vec4 sample = texture2D(texture, vUV);
+  gl_FragColor = vec4(sample.xyz, sample.w);
+}
+</script>
+
+
 
 <script>
-
 
 // DETECT INCOMPATIBLE BROWSERS AND DEVICES
     if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
@@ -118,8 +75,10 @@
     var PI_2 = Math.PI / 2;
     var NUM_ROWS = 3;
     var ROW_SPACE_WIDTH = 30;
-    var BACKGROUND_COLOR = 0xc90400;
-    var FOG_COLOR = 0xe7e6e9;
+    var BACKGROUND_COLOR = 0x000000;
+    var FOG_COLOR = 0x000000;
+    var CAMERA_HEIGHT = 20;
+
     var num_tweets = parseInt(document.getElementById('length').innerHTML);
     var ul, user, name, time;
     var candle, flowers, item;
@@ -145,11 +104,11 @@
 
 // INIT SCENE, CAMERA, CLOCK AND RENDERER
     var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 10000);
+    var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 5000);
     var clock = new THREE.Clock();
 
     var renderer = new THREE.WebGLRenderer({ alpha: true , antialias: true });
-    renderer.setClearColor( FOG_COLOR, 1);
+    renderer.setClearColor( BACKGROUND_COLOR, 1);
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     renderer.shadowMapEnabled = true;
@@ -160,7 +119,7 @@
 
 // SET THE CAMERA POSITION AND DIRECTION
     camera.setLens(60)
-    camera.position.setY(25);
+    camera.position.setY(CAMERA_HEIGHT);
     camera.position.setZ(100);
     scene.add( camera );
 
@@ -178,41 +137,59 @@
         geometry.vertices[ i ].y = data[ i ] * .1;
     }
 
-    var texture = THREE.ImageUtils.loadTexture( '/static/terrain/grasslight-big.jpg' )
+    var texture = THREE.ImageUtils.loadTexture( 'static/images/sandtexture.jpg' )
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set( 20, 20 );
     texture.needsUpdate = true;
 
-    plane = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { map: texture } ) );
+    plane = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { map: texture } ) );
     plane.receiveShadow = true;
     scene.add( plane );
 
 
 // LIGHTS
-    var light = new THREE.DirectionalLight( 0x404040, .3 );
-    light.position.set( -1000, 20, 1000);
-    light.target.position.set(0, 0, 0);
-    light.castShadow = true;
-    light.shadowCameraVisible = true;
-    light.shadowMapWidth = 2048;
-    light.shadowMapHeight = 2048;
-    light.shadowDarkness = .25
-    scene.add( light );
 
-    var directional_light = new THREE.DirectionalLight( 0x404040, 1 );
-    directional_light.position.set( 1000, 1000, 1000 );
-    directional_light.target.position.set(0, 0, 0);
-    directional_light.castShadow = true;
-    directional_light.shadowCameraVisible = true;
-    directional_light.shadowMapWidth = 2048;
-    directional_light.shadowMapHeight = 2048;
-    directional_light.shadowDarkness = .25
-    scene.add( directional_light );
+    var scale = 15;
+    var bulb_geo = new THREE.SphereGeometry( .1 );
+    var bulb_material = new THREE.MeshLambertMaterial( {color: 0x26ce46, opacity: .6} );
+
+    for (var i = 1; i < 21; i++) {
+        var z = -Math.sin(0.157 * i) * scale
+        var x = Math.cos(0.157 * i) * scale
+        var pointlight = new THREE.PointLight( 0xffffff, .1, 200 );
+        pointlight.position = new THREE.Vector3(x, 20, z);
+        camera.add( pointlight );
+    }
+
+    // var sphereSize = 3;
+    // var pointLightHelper = new THREE.PointLightHelper( pointlight, sphereSize );
+    // scene.add( pointLightHelper );
+    // camera.add(pointlight);
+
+    // var blue_light = new THREE.DirectionalLight( 0xffffff, 1 );
+    // blue_light.position.set(-100,100,0);
+    // scene.add(blue_light);
+
+    var red_light = new THREE.DirectionalLight( 0xffffff, .5 );
+    red_light.position.set(100,100,0);
+    scene.add(red_light);
+
+    var hemisphereLight = new THREE.HemisphereLight(0xd2d3d5,0x634b3d, .5 );
+    hemisphereLight.position.set(1, 40, -20).normalize();
+    scene.add(hemisphereLight);
+
+    // var flashlight = new THREE.SpotLight(0x454546, .5, 500, Math.PI/2 );
+    // camera.add(flashlight);
+    // flashlight.position.set(0,20,10);
+    // // flashlight.target = camera;
+    // flashlight.shadowDarkness = .3;
+    // flashlight.shadowMapHeight = 2048;
+    // // flashlight.shadowCameraFov = 120;
 
 
 // FOG
-    scene.fog = new THREE.Fog( FOG_COLOR, 100, 400 );
+    scene.fog = new THREE.Fog( 0x431a43, 200, 450 );
 
 
 // MODEL
@@ -226,6 +203,28 @@
         obj.scale.set(.01, .01, .01);
         flowers = obj;
     });
+
+// SKYBOX
+
+    sky_texture = new THREE.ImageUtils.loadTexture( 'static/images/nightskysquare.jpg' );
+    var geometry = new THREE.SphereGeometry(1500, 60, 40);
+    var uniforms = {
+      texture: { type: 't', value: sky_texture }
+    };
+
+    var material = new THREE.ShaderMaterial( {
+      uniforms:       uniforms,
+      vertexShader:   document.getElementById('sky-vertex').textContent,
+      fragmentShader: document.getElementById('sky-fragment').textContent,
+      fog: false
+    });
+
+    skyBox = new THREE.Mesh(geometry, material);
+    skyBox.scale.set(-1, 1, 1);
+    skyBox.rotation.order = 'XZY';
+    skyBox.renderDepth = 1000.0;
+    scene.add(skyBox);
+
 
 
 // ADD GRAVES AND TEXT
@@ -251,8 +250,8 @@
     var geometry = new THREE.BoxGeometry( 10, 30, 10);
     var RIPgeometry = new THREE.TextGeometry( '# R I P', parameters );
 
-    var grave_material = new THREE.MeshBasicMaterial( { color: 0x525254 } );
-    var text_material = new THREE.MeshBasicMaterial( { color: 0xffffff } )
+    var grave_material = new THREE.MeshPhongMaterial( { color: 0x000000, shininess: 50 } );
+    var text_material = new THREE.MeshLambertMaterial( { color: 0xebb98d } )
 
     for( var i = num_tweets-1, j = 0; i >= 0; i--, j++) {
 
@@ -277,7 +276,7 @@
         ripArray[i].position.x = POSITION_X - 3;
         ripArray[i].position.z = POSITION_Z + 5;
         ripArray[i].position.y = 20;
-        ripArray[i].receiveShadow = false;
+        ripArray[i].receiveShadow = true;
         ripArray[i].castShadow = false;
 
         var name_geometry = new THREE.TextGeometry(tweetArray[i].name, parameters);
@@ -286,7 +285,7 @@
         nameArray[i].position.z = POSITION_Z + 5;
         nameArray[i].position.y = 19;
         nameArray[i].name = tweetArray[i].name;
-        nameArray[i].castShadow = false;
+        nameArray[i].castShadow = true;
         nameArray[i].receiveShadow = false;
 
         var user_geometry = new THREE.TextGeometry('@' + tweetArray[i].user, parameters);
@@ -295,7 +294,7 @@
         userArray[i].position.z = POSITION_Z + 5;
         userArray[i].position.y = 16;
         userArray[i].name = tweetArray[i].user;
-        userArray[i].castShadow = false;
+        userArray[i].castShadow = true;
         userArray[i].receiveShadow = false;
 
         var time_geometry = new THREE.TextGeometry(tweetArray[i].time, parameters);
@@ -304,7 +303,7 @@
         timeArray[i].position.z = POSITION_Z + 5;
         timeArray[i].position.y = 15;
         timeArray[i].name = tweetArray[i].time;
-        timeArray[i].castShadow = false;
+        timeArray[i].castShadow = true;
         timeArray[i].receiveShadow = false;
     }
 
@@ -326,7 +325,7 @@
     };
 
 
-// PLACE THE ITEM
+// PLACE THE ITEM (CANDLE OR FLOWERS)
     function placeItem( event ) {
         scene.add( item.clone() );
     };
@@ -459,7 +458,6 @@
             quality *= 5;
         }
         return data;
-
     }
 
 
@@ -467,6 +465,7 @@
     document.addEventListener( 'readystatechange', checkZones, false);
     document.addEventListener( 'keydown', checkZones, false);
     document.addEventListener('click', FollowCursor, false);
+    document.addEventListener('change', function () { render(); });
 
     var field = document.getElementById('field');
     var button = document.getElementById('button');
@@ -479,7 +478,6 @@
     menu.addEventListener( 'hover', cancelPlacing, false);
     candle_element.addEventListener('click', onChoosingCandle, false);
     flowers_element.addEventListener('click', onChoosingFlowers, false);
-
 
     animate();
 
