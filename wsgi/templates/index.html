@@ -433,7 +433,7 @@ void main() {
             if (nameArray[i].name == search) {
                 var new_camera_position = nameArray[i].position.clone();
                 new_camera_position.setZ(nameArray[i].position.z + 75);
-                new_camera_position.setY(10)
+                new_camera_position.setY(CAMERA_HEIGHT)
                 camera.position = new_camera_position;
                 camera.lookAt(nameArray[i].position)
                 break;
