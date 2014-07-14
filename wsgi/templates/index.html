@@ -5,8 +5,6 @@
 <style>
     canvas { width: 100%; height: 100% }
 
-    body {margin: 0px;}
-
     #info {display: none;}
 
     #menu {
@@ -190,24 +188,27 @@
 
 
 // LIGHTS
-    var light = new THREE.DirectionalLight( 0x404040, .3 );
-    light.position.set( -1000, 20, 1000);
-    light.target.position.set(0, 0, 0);
-    light.castShadow = true;
-    light.shadowCameraVisible = true;
-    light.shadowMapWidth = 2048;
-    light.shadowMapHeight = 2048;
-    light.shadowDarkness = .25
-    scene.add( light );
+    // var light = new THREE.DirectionalLight( 0x404040, .3 );
+    // light.position.set( -1000, 20, 1000);
+    // light.target.position.set(0, 0, 0);
+    // light.castShadow = true;
+    // light.shadowCameraVisible = true;
+    // light.shadowMapWidth = 2048;
+    // light.shadowMapHeight = 2048;
+    // light.shadowDarkness = .25
+    // scene.add( light );
 
-    var directional_light = new THREE.DirectionalLight( 0x404040, 1 );
+    var hemi_light = new THREE.HemisphereLight( 0xf3f2c9, 0xf3f2c9 , .1); // soft white light
+    scene.add( hemi_light );
+
+    var directional_light = new THREE.DirectionalLight( 0x404040, .3 );
     directional_light.position.set( 1000, 1000, 1000 );
     directional_light.target.position.set(0, 0, 0);
     directional_light.castShadow = true;
     directional_light.shadowCameraVisible = true;
     directional_light.shadowMapWidth = 2048;
     directional_light.shadowMapHeight = 2048;
-    directional_light.shadowDarkness = .25
+    directional_light.shadowDarkness = .2
     scene.add( directional_light );
 
 
@@ -251,12 +252,10 @@
     var geometry = new THREE.BoxGeometry( 10, 30, 10);
     var RIPgeometry = new THREE.TextGeometry( '# R I P', parameters );
 
-    var grave_material = new THREE.MeshBasicMaterial( { color: 0x525254 } );
+    var grave_material = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: 0xdddddd })
     var text_material = new THREE.MeshBasicMaterial( { color: 0xffffff } )
 
     for( var i = num_tweets-1, j = 0; i >= 0; i--, j++) {
-
-        console.log( i , NUM_ROWS)
 
         if (j / NUM_ROWS == 1) {
             NUM_ROWS += 4
