@@ -149,43 +149,36 @@ void main() {
 
 
 // LIGHTS
-
-    var scale = 15;
+    var scale = 10
     var bulb_geo = new THREE.SphereGeometry( .1 );
     var bulb_material = new THREE.MeshLambertMaterial( {color: 0x26ce46, opacity: .6} );
 
-    for (var i = 1; i < 21; i++) {
-        var z = -Math.sin(0.157 * i) * scale
-        var x = Math.cos(0.157 * i) * scale
-        var pointlight = new THREE.PointLight( 0xffffff, .1, 200 );
-        pointlight.position = new THREE.Vector3(x, 20, z);
+    for (var i = -5; i < 5; i++) {
+        var pointlight = new THREE.PointLight( 0xffffff, .1, 150 );
+        pointlight.position = new THREE.Vector3(i*scale, 0, 0);
         camera.add( pointlight );
     }
 
-    // var sphereSize = 3;
-    // var pointLightHelper = new THREE.PointLightHelper( pointlight, sphereSize );
-    // scene.add( pointLightHelper );
-    // camera.add(pointlight);
+    var dir_light = new THREE.DirectionalLight( 0xffffff, 1 );
+    dir_light.position.set(1000,1000,1000);
+    dir_light.shadowMapHeight = 2048
+    dir_light.shadowMapWidth = 2048
+    dir_light.shadowDarkness = .15
+    dir_light.castShadow = true;
+    scene.add(dir_light);
 
-    // var blue_light = new THREE.DirectionalLight( 0xffffff, 1 );
-    // blue_light.position.set(-100,100,0);
-    // scene.add(blue_light);
 
-    var red_light = new THREE.DirectionalLight( 0xffffff, .5 );
-    red_light.position.set(100,100,0);
-    scene.add(red_light);
+    var top_light = new THREE.DirectionalLight( 0xffffff, .5 );
+    top_light.position.set(0,500,-100);
+    top_light.shadowMapHeight = 2048
+    top_light.shadowMapWidth = 2048
+    top_light.onlyShadow = true;
+    top_light.shadowDarkness = .2
+    top_light.castShadow = true;
+    scene.add(top_light);
 
     var hemisphereLight = new THREE.HemisphereLight(0xd2d3d5,0x634b3d, .5 );
-    hemisphereLight.position.set(1, 40, -20).normalize();
     scene.add(hemisphereLight);
-
-    // var flashlight = new THREE.SpotLight(0x454546, .5, 500, Math.PI/2 );
-    // camera.add(flashlight);
-    // flashlight.position.set(0,20,10);
-    // // flashlight.target = camera;
-    // flashlight.shadowDarkness = .3;
-    // flashlight.shadowMapHeight = 2048;
-    // // flashlight.shadowCameraFov = 120;
 
 
 // FOG
@@ -205,25 +198,22 @@ void main() {
     });
 
 // SKYBOX
+    sky_texture = new THREE.ImageUtils.loadTexture( 'static/images/sky.jpg' );
+    sky_texture.wrapS = THREE.RepeatWrapping;
+    sky_texture.wrapT = THREE.RepeatWrapping;
+    sky_texture.repeat.set( 10, 1 );
+    sky_texture.needsUpdate = true;
 
-    sky_texture = new THREE.ImageUtils.loadTexture( 'static/images/nightskysquare.jpg' );
-    var geometry = new THREE.SphereGeometry(1500, 60, 40);
-    var uniforms = {
-      texture: { type: 't', value: sky_texture }
-    };
+    sky_material = new THREE.MeshLambertMaterial(
+        { map: sky_texture,
+          fog: false } );
 
-    var material = new THREE.ShaderMaterial( {
-      uniforms:       uniforms,
-      vertexShader:   document.getElementById('sky-vertex').textContent,
-      fragmentShader: document.getElementById('sky-fragment').textContent,
-      fog: false
-    });
-
-    skyBox = new THREE.Mesh(geometry, material);
-    skyBox.scale.set(-1, 1, 1);
-    skyBox.rotation.order = 'XZY';
-    skyBox.renderDepth = 1000.0;
-    scene.add(skyBox);
+    var sky_geometry = new THREE.PlaneGeometry( 1000, 500);
+    sky = new THREE.Mesh( sky_geometry, sky_material );
+    sky.position.z = camera.position.z - 1000;
+    sky.rotation.set(0, 0, 0);
+    camera.add( sky )
+    sky.rotation.set(0, 0, 0);
 
 
 
@@ -250,7 +240,7 @@ void main() {
     var geometry = new THREE.BoxGeometry( 10, 30, 10);
     var RIPgeometry = new THREE.TextGeometry( '# R I P', parameters );
 
-    var grave_material = new THREE.MeshPhongMaterial( { color: 0x000000, shininess: 50 } );
+    var grave_material = new THREE.MeshPhongMaterial( { color: 0x000000, shininess: 80 } );
     var text_material = new THREE.MeshLambertMaterial( { color: 0xebb98d } )
 
     for( var i = num_tweets-1, j = 0; i >= 0; i--, j++) {
